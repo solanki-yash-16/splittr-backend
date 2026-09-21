@@ -25,6 +25,31 @@ export const createGroup = async (req: AuthRequest, res: Response) => {
   }
 };
 
+export const getUserGroups = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+    const groups = await Group.find({ members: req.user.id }).sort({ createdAt: -1 });
+    res.status(200).json({ success: true, message: 'Groups fetched successfully', data: groups });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const getGroupById = async (req: Request, res: Response) => {
+  try {
+    const { id: groupId } = req.params;
+    const group = await Group.findById(groupId);
+    if (!group) {
+      return res.status(404).json({ success: false, message: 'Group not found' });
+    }
+    res.status(200).json({ success: true, message: 'Group fetched successfully', data: group });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 export const addExpense = async (req: AuthRequest, res: Response) => {
   try {
     const { id: groupId } = req.params;

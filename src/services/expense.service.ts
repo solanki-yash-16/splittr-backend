@@ -82,16 +82,18 @@ export const addExpense = async (
 
 export const getGroupSummary = async (
   groupId: string,
-): Promise<Record<string, number>> => {
+): Promise<Record<string, { balance: number; name: string }>> => {
   const expenses = await Expense.find({ groupId: new Types.ObjectId(groupId) });
 
   const balances: Record<string, number> = {};
+  const names: Record<string, string> = {};
 
   // Initialize group members balances to 0 if needed (optional, depends on if we want members with 0 balance shown)
-  const group = await Group.findById(groupId);
+  const group = await Group.findById(groupId).populate("members", "name");
   if (group) {
-    group.members.forEach((m) => {
-      balances[m.toString()] = 0;
+    group.members.forEach((m: any) => {
+      balances[m._id.toString()] = 0;
+      names[m._id.toString()] = m.name;
     });
   }
 
@@ -110,10 +112,14 @@ export const getGroupSummary = async (
     });
   });
 
+  const result: Record<string, { balance: number; name: string }> = {};
   // Fix floating point precision
   for (const user in balances) {
-    balances[user] = Number(balances[user].toFixed(2));
+    result[user] = {
+      balance: Number(balances[user].toFixed(2)),
+      name: names[user] || "Unknown User",
+    };
   }
 
-  return balances;
+  return result;
 };

@@ -6,14 +6,14 @@ export const calculateSettlements = async (
 ): Promise<Transaction[]> => {
   const balances = await getGroupSummary(groupId);
 
-  const debtors: { user: string; amount: number }[] = [];
-  const creditors: { user: string; amount: number }[] = [];
+  const debtors: { user: string; name: string; amount: number }[] = [];
+  const creditors: { user: string; name: string; amount: number }[] = [];
 
-  for (const [user, amount] of Object.entries(balances)) {
-    if (amount < 0) {
-      debtors.push({ user, amount: Math.abs(amount) });
-    } else if (amount > 0) {
-      creditors.push({ user, amount });
+  for (const [user, data] of Object.entries(balances)) {
+    if (data.balance < 0) {
+      debtors.push({ user, name: data.name, amount: Math.abs(data.balance) });
+    } else if (data.balance > 0) {
+      creditors.push({ user, name: data.name, amount: data.balance });
     }
   }
 
@@ -34,7 +34,9 @@ export const calculateSettlements = async (
     // Create transaction
     transactions.push({
       from: debtor.user,
+      fromName: debtor.name,
       to: creditor.user,
+      toName: creditor.name,
       amount: Number(minAmount.toFixed(2)),
     });
 
