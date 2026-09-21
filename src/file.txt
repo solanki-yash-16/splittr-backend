@@ -1,0 +1,69 @@
+1. Register User
+Endpoint: POST /api/auth/register
+Headers: Content-Type: application/json
+Body:
+json
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "mysecretpassword"
+}
+2. Login User
+Endpoint: POST /api/auth/login
+Headers: Content-Type: application/json
+Body:
+json
+{
+  "email": "john@example.com",
+  "password": "mysecretpassword"
+}
+(Returns a JWT token that you must include in the Authorization: Bearer <token> header for all the group/expense requests below).
+
+3. Create a Group
+Endpoint: POST /api/groups
+Headers: Authorization: Bearer <token>, Content-Type: application/json
+Body:
+json
+{
+  "name": "Goa Trip",
+  "members": [
+    "64b5f928e4b0a1c2d3e4f5g6", 
+    "64b5f928e4b0a1c2d3e4f5g7"
+  ]
+}
+(Pass the ObjectIDs of the users you want to add to the group. The user making the request is automatically added).
+
+4. Add an Expense
+Endpoint: POST /api/groups/:groupId/expenses (Replace :groupId with the actual group ID)
+Headers: Authorization: Bearer <token>, Content-Type: application/json
+Scenario A: Split Equally If you want the backend to automatically divide the amount equally among everyone in the group, do not pass the splitAmong field (or pass it empty):
+
+json
+{
+  "paidBy": "64b5f928e4b0a1c2d3e4f5g6",
+  "amount": 300,
+  "description": "Dinner"
+}
+Scenario B: Custom / Unequal Split If you want to specify exactly how much each person owes, pass the splitAmong array. The amountOwed values must sum up to the total amount.
+
+json
+{
+  "paidBy": "64b5f928e4b0a1c2d3e4f5g6",
+  "amount": 300,
+  "description": "Dinner",
+  "splitAmong": [
+    { "user": "64b5f928e4b0a1c2d3e4f5g6", "amountOwed": 150 },
+    { "user": "64b5f928e4b0a1c2d3e4f5g7", "amountOwed": 100 },
+    { "user": "64b5f928e4b0a1c2d3e4f5g8", "amountOwed": 50 }
+  ]
+}
+5. Get Group Summary (Balances)
+Endpoint: GET /api/groups/:groupId/summary
+Headers: Authorization: Bearer <token>
+Body: None required
+
+6. Get Settlement Calculation
+Endpoint: GET /api/groups/:groupId/settlements
+Headers: Authorization: Bearer <token>
+Body: None required
+16:25
